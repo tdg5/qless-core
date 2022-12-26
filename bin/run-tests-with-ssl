@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 get_repo_dir () {
   SOURCE="${BASH_SOURCE[0]}"
   # While $SOURCE is a symlink, resolve it
@@ -16,16 +14,11 @@ get_repo_dir () {
   echo "$DIR"
 }
 
-if [ -z "$TAG" ]; then
-  TAG="latest"
-fi
-
 REPO_DIR="$(get_repo_dir)"
 
-docker run \
-  --interactive \
-  --publish 6379:6379 \
-  --rm \
-  --volume "${REPO_DIR}/test/tls:/tls" \
-  --tty \
-  "qless-core:$TAG"
+CA_CERTS="${REPO_DIR}/test/tls/ca.crt"
+CERTFILE="${REPO_DIR}/test/tls/redis.crt"
+KEYFILE="${REPO_DIR}/test/tls/redis.key"
+REDIS_URL="rediss://localhost:6379?ssl_cert_reqs=required&ssl_ca_certs=${CA_CERTS}&ssl_keyfile=${KEYFILE}&ssl_certfile=${CERTFILE}"
+
+REDIS_URL="$REDIS_URL" make test

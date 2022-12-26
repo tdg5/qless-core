@@ -1,10 +1,20 @@
 #/bin/bash
 
-redis-server &
+redis-server \
+  --port 0 \
+  --tls-ca-cert-file /tls/ca.crt \
+  --tls-cert-file /tls/redis.crt \
+  --tls-key-file /tls/redis.key \
+  --tls-port 6379 &
 REDIS_PID="$!"
 
 while true; do
-  redis-cli quit
+  redis-cli \
+    --cacert /tls/ca.crt \
+    --cert /tls/redis.crt \
+    --key /tls/redis.key \
+    --tls \
+    quit
   LAST_STATUS="$?"
   if [ "$LAST_STATUS" != "0" ]; then
     sleep 1
@@ -13,6 +23,12 @@ while true; do
   fi
 done
 
-cat qless.lua | redis-cli -x script load
+cat qless.lua | \
+  redis-cli \
+    --cacert /tls/ca.crt \
+    --cert /tls/redis.crt \
+    --key /tls/redis.key \
+    --tls \
+    -x script load
 
 wait "$REDIS_PID"

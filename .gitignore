@@ -2,3 +2,4 @@ qless.lua
 qless-lib.lua
 *.pyc
 venv
+test/tls
